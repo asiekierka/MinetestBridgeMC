@@ -21,10 +21,10 @@ compileJava {
 }
 
 minecraft {
-    version = "1.12.2-14.23.2.2654"
+    version = "1.12.2-14.23.5.2772"
     runDir = "run"
     
-    mappings = "snapshot_20180405"
+    mappings = "snapshot_20180814"
     makeObfSourceJar = false
 
     replace "\${version}", project.version

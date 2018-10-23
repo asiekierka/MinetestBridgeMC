@@ -99,7 +99,7 @@ public class BlockNode extends Block implements IBlockNode, ITileEntityProvider 
 
     @Override
     @SideOnly(Side.CLIENT)
-    public BlockRenderLayer getBlockLayer() {
+    public BlockRenderLayer getRenderLayer() {
         return isGlasslike ? BlockRenderLayer.TRANSLUCENT : BlockRenderLayer.CUTOUT_MIPPED;
     }
 
@@ -114,7 +114,7 @@ public class BlockNode extends Block implements IBlockNode, ITileEntityProvider 
     }
 
     @Override
-    public String getUnlocalizedName() {
+    public String getTranslationKey() {
         LuaValue value = table.get("description");
         if (value.isstring()) {
             return value.tojstring();
@@ -125,7 +125,7 @@ public class BlockNode extends Block implements IBlockNode, ITileEntityProvider 
 
     @Override
     public String getLocalizedName() {
-        return getUnlocalizedName();
+        return getTranslationKey();
     }
 
     @Override

@@ -35,12 +35,12 @@ public class ItemBlockNode extends ItemBlock implements IItemNode {
 
     @Override
     public String getUnlocalizedNameInefficiently(ItemStack stack) {
-        return getUnlocalizedName();
+        return getTranslationKey();
     }
 
     @Override
     public String getItemStackDisplayName(ItemStack stack) {
-        return getUnlocalizedName();
+        return getTranslationKey();
     }
 
     // ItemBlockNode-specific

@@ -169,7 +169,7 @@ public class MinetestBridge
         MinecraftForge.EVENT_BUS.register(this);
         tab = new CreativeTabs("minetestbridge") {
             @Override
-            public ItemStack getTabIconItem() {
+            public ItemStack createIcon() {
                 return new ItemStack(Blocks.BEDROCK);
             }
         };
@@ -181,7 +181,7 @@ public class MinetestBridge
 
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        GameRegistry.registerTileEntity(TileEntityNode.class, "minetestbridge:node");
+        GameRegistry.registerTileEntity(TileEntityNode.class, new ResourceLocation("minetestbridge:node"));
         BackwardsBlockItemPopulator.populate(globals);
     }
 
@@ -285,10 +285,10 @@ public class MinetestBridge
     }
 
     public static String asMtName(ResourceLocation mcName) {
-        if (mcName.getResourceDomain().equals("minetestbridge")) {
+        if (mcName.getNamespace().equals("minetestbridge")) {
             // minetest
-            return mcName.getResourcePath().replaceFirst("/", ":");
-        } else if (mcName.getResourceDomain().equals("minecraft")) {
+            return mcName.getPath().replaceFirst("/", ":");
+        } else if (mcName.getNamespace().equals("minecraft")) {
             // vanilla
             return mcName.toString();
         } else {

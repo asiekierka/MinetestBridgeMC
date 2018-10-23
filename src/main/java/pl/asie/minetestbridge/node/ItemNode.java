@@ -55,18 +55,18 @@ public class ItemNode extends Item implements IItemNode {
 
     @Override
     public String getUnlocalizedNameInefficiently(ItemStack stack) {
-        return getUnlocalizedName();
+        return getTranslationKey();
     }
 
     @Override
     public String getItemStackDisplayName(ItemStack stack) {
-        return getUnlocalizedName();
+        return getTranslationKey();
     }
 
     // ItemNode-specific
 
     @Override
-    public String getUnlocalizedName() {
+    public String getTranslationKey() {
         LuaValue value = table.get("description");
         if (value.isstring()) {
             return value.tojstring();
