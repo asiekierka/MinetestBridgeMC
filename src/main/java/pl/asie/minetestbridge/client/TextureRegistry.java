@@ -5,6 +5,7 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.ast.Str;
 import pl.asie.minetestbridge.MinetestBridge;
@@ -14,18 +15,22 @@ import java.io.File;
 
 public class TextureRegistry {
     public static ResourceLocation toMcLoc(String owner, String tex) {
+        tex = DigestUtils.md5Hex(tex);
         return new ResourceLocation("minetestbridge:" + tex);
     }
 
     private void appendTexture(String owner, LuaValue invImage, TextureMap map) {
+        LuaValue obj = null;
+
         if (invImage.istable() && invImage.get("name").isstring()) {
+            obj = invImage;
             invImage = invImage.get("name");
         }
 
         if (invImage.isstring()) {
-            String textureName = "minetestbridge:" + invImage.tojstring();
-            map.setTextureEntry(new TextureMinetestSprite(textureName,
-                    MinetestBridge.getModDir(), MinetestBridge.getLoadedMods(), "/textures/" + invImage.tojstring()));
+            ResourceLocation textureName = toMcLoc(owner, invImage.tojstring());
+            map.setTextureEntry(new TextureMinetestSprite(textureName.toString(),
+                    MinetestBridge.getModDir(), MinetestBridge.getLoadedMods(), invImage.tojstring(), obj));
         }
     }
 
