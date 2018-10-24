@@ -17,16 +17,9 @@
  * along with MinetestBridge.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package pl.asie.minetestbridge.util;
+package pl.asie.minetestbridge.node;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-@Retention(value = RUNTIME)
-@Target(value = FIELD)
-public @interface LuaField {
+public interface ITileNode {
+    int getParam2();
+    void setParam2(int param2);
 }

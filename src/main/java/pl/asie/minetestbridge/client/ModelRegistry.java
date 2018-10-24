@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2015, 2016, 2017, 2018 Adrian Siekierka
+ *
+ * This file is part of MinetestBridge.
+ *
+ * MinetestBridge is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * MinetestBridge is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with MinetestBridge.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package pl.asie.minetestbridge.client;
 
 import com.google.common.collect.ImmutableList;
@@ -25,12 +44,13 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.ast.Str;
-import pl.asie.charset.lib.utils.Orientation;
 import pl.asie.minetestbridge.MinetestBridge;
 import pl.asie.minetestbridge.MinetestLib;
 import pl.asie.minetestbridge.client.util.NodeboxBakedModel;
+import pl.asie.minetestbridge.client.util.TransformingBakedModel;
 import pl.asie.minetestbridge.node.BlockNode;
 import pl.asie.minetestbridge.node.ItemNode;
+import pl.asie.minetestbridge.util.Orientation;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -121,6 +141,11 @@ public class ModelRegistry implements IStateMapper {
                         bm = model.bake(TRSRTransformation.identity(), DefaultVertexFormats.ITEM, ModelLoader.defaultTextureGetter());
                     }
 
+                    ITransformation[] transformations = getTransformations(value);
+                    if (transformations.length > 1) {
+                        bm = new TransformingBakedModel(bm, transformations);
+                    }
+
                     if (bm != null) {
                         event.getModelRegistry().putObject(new ModelResourceLocation(loc, "normal"), bm);
                         event.getModelRegistry().putObject(new ModelResourceLocation(loc, "inventory"), bm);
@@ -134,6 +159,37 @@ public class ModelRegistry implements IStateMapper {
 
     static {
         types.put("none", new ITransformation[]{ModelRotation.X0_Y0});
+        types.put("facedir", new ITransformation[] {
+                Orientation.FACE_UP_POINT_NORTH,
+                Orientation.FACE_UP_POINT_EAST,
+                Orientation.FACE_UP_POINT_SOUTH,
+                Orientation.FACE_UP_POINT_WEST,
+
+                Orientation.FACE_SOUTH_POINT_UP,
+                Orientation.FACE_SOUTH_POINT_EAST,
+                Orientation.FACE_SOUTH_POINT_DOWN,
+                Orientation.FACE_SOUTH_POINT_WEST,
+
+                Orientation.FACE_NORTH_POINT_UP,
+                Orientation.FACE_NORTH_POINT_EAST,
+                Orientation.FACE_NORTH_POINT_DOWN,
+                Orientation.FACE_NORTH_POINT_WEST,
+
+                Orientation.FACE_EAST_POINT_UP,
+                Orientation.FACE_EAST_POINT_SOUTH,
+                Orientation.FACE_EAST_POINT_DOWN,
+                Orientation.FACE_EAST_POINT_NORTH,
+
+                Orientation.FACE_WEST_POINT_UP,
+                Orientation.FACE_WEST_POINT_SOUTH,
+                Orientation.FACE_WEST_POINT_DOWN,
+                Orientation.FACE_WEST_POINT_NORTH,
+
+                Orientation.FACE_DOWN_POINT_NORTH,
+                Orientation.FACE_DOWN_POINT_EAST,
+                Orientation.FACE_DOWN_POINT_SOUTH,
+                Orientation.FACE_DOWN_POINT_WEST,
+        });
     }
 
     private ITransformation[] getTransformations(LuaValue value) {

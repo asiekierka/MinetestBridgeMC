@@ -1,7 +1,27 @@
+/*
+ * Copyright (c) 2015, 2016, 2017, 2018 Adrian Siekierka
+ *
+ * This file is part of MinetestBridge.
+ *
+ * MinetestBridge is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * MinetestBridge is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with MinetestBridge.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package pl.asie.minetestbridge;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
@@ -16,6 +36,8 @@ import org.luaj.vm2.lib.TwoArgFunction;
 import org.luaj.vm2.lib.ZeroArgFunction;
 import pl.asie.minetestbridge.backwards.ItemStackWrapped;
 import pl.asie.minetestbridge.node.BlockNode;
+import pl.asie.minetestbridge.node.ITileNode;
+import pl.asie.minetestbridge.node.TileEntityNode;
 import pl.asie.minetestbridge.recipe.MinetestRecipeProxy;
 import pl.asie.minetestbridge.util.LuaField;
 import pl.asie.minetestbridge.util.LuaMethod;
@@ -157,6 +179,11 @@ public class MinetestLib extends ZeroArgFunction {
     }
 
     @LuaMethod
+    public LuaValue get_player_privs(String name) {
+        return LuaValue.tableOf(); // TODO
+    }
+
+    @LuaMethod
     public LuaValue get_last_run_mod() {
         MinetestMod mod = MinetestBridge.getLastRunMod();
         return mod != null ? LuaValue.valueOf(mod.getName()) : LuaValue.valueOf("*builtin*");
@@ -205,14 +232,59 @@ public class MinetestLib extends ZeroArgFunction {
                     (w.getLightFor(EnumSkyBlock.BLOCK, mcPos) & 0xF)
                     | ((w.getLight(mcPos) & 0xF) << 4)
             ));
-            result.set("param2", LuaValue.valueOf(0));
+            int param2 = 0;
             if (state.getBlock() instanceof BlockNode) {
-                // TODO: copy over param2 from TileEntityNode
+                TileEntity tile = w.getTileEntity(mcPos);
+                if (tile instanceof ITileNode) {
+                    param2 = ((ITileNode) tile).getParam2();
+                }
             }
+            result.set("param2", LuaValue.valueOf(param2));
             return result;
         } else {
             return LuaValue.NIL;
         }
+    }
+
+    @LuaMethod
+    public LuaValue check_for_falling(LuaValue pos) {
+        // TODO: Correct?
+        BlockPos mcPos = MinetestBridge.toMcPos(pos);
+        World w = MinetestBridge.getCurrentWorld();
+        w.neighborChanged(mcPos, w.getBlockState(mcPos).getBlock(), mcPos);
+        return null;
+    }
+
+    @LuaMethod
+    public LuaValue swap_node(LuaValue pos, LuaValue node) {
+        BlockPos mcPos = MinetestBridge.toMcPos(pos);
+        World w = MinetestBridge.getCurrentWorld();
+        IBlockState state = w.getBlockState(mcPos);
+        String currName = MinetestBridge.asMtName(state.getBlock().getRegistryName());
+        if (!currName.equals(node.get("name").optjstring("ignore"))) {
+            MinetestBridge.logger.warn("Swapping nodes of different types is not supported yet!");
+        }
+
+        LuaValue param2 = node.get("param2");
+        if (param2.isnumber() && state.getBlock() instanceof BlockNode) {
+            TileEntity tile = w.getTileEntity(mcPos);
+            if (tile instanceof ITileNode) {
+                ((ITileNode) tile).setParam2(param2.toint());
+            }
+        }
+
+        return null;
+    }
+
+    @LuaMethod
+    public LuaValue set_node(LuaValue pos, LuaValue node) {
+        MinetestBridge.logger.warn("TODO: set_node");
+        return null;
+    }
+
+    @LuaMethod
+    public LuaValue add_node(LuaValue pos, LuaValue node) {
+        return set_node(pos, node);
     }
 
     @LuaMethod

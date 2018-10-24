@@ -26,56 +26,58 @@ import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.EnumFacing;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import net.minecraft.util.math.MathHelper;
+import net.minecraftforge.common.model.ITransformation;
+import net.minecraftforge.common.property.IExtendedBlockState;
 import org.apache.commons.lang3.tuple.Pair;
+import pl.asie.minetestbridge.node.BlockNode;
 
+import javax.annotation.Nullable;
 import javax.vecmath.Matrix4f;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SimpleBakedModel implements IBakedModel {
-    private final List<BakedQuad>[] quads = new List[7];
-    private final IBakedModel parent;
-    private TextureAtlasSprite particle;
+public class TransformingBakedModel implements IBakedModel {
+    protected final IBakedModel parent;
+    private final ITransformation[] transformations;
 
-    public SimpleBakedModel() {
-        this(null);
-    }
-
-    public SimpleBakedModel(IBakedModel parent) {
+    public TransformingBakedModel(IBakedModel parent, ITransformation[] transformations) {
         this.parent = parent;
-        for (int i = 0; i < quads.length; i++) {
-            quads[i] = new ArrayList<>();
-        }
-    }
-
-    public void setParticle(TextureAtlasSprite particle) {
-        this.particle = particle;
-    }
-
-    public void addQuad(EnumFacing side, BakedQuad quad) {
-        quads[side == null ? 6 : side.ordinal()].add(quad);
-    }
-
-    public void addModel(IBakedModel model) {
-        for (int i = 0; i < 7; i++) {
-            quads[i].addAll(model.getQuads(null, i == 6 ? null : EnumFacing.byIndex(i), 0));
-        }
+        this.transformations = transformations;
     }
 
     @Override
-    public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
-        return quads[side == null ? 6 : side.ordinal()];
+    public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand) {
+        // TODO: cache you, cache me
+        if (state instanceof IExtendedBlockState) {
+            int i = ((IExtendedBlockState) state).getValue(BlockNode.PARAM2) % MathHelper.smallestEncompassingPowerOfTwo(transformations.length);
+            ITransformation transformation = i >= transformations.length ? transformations[0] : transformations[i];
+            List<BakedQuad> quads = parent.getQuads(state, side == null ? null : transformation.rotate(side), rand);
+
+            List<BakedQuad> newQuads = new ArrayList<>(quads.size());
+            for (BakedQuad quad : quads) {
+                newQuads.add(
+                        ModelTransformer.transform(quad,
+                                ModelTransformer.IVertexTransformer.transform(transformation)
+                        )
+                );
+            }
+
+            return newQuads;
+        } else {
+            List<BakedQuad> quads = parent.getQuads(state, side, rand);
+            return quads;
+        }
     }
 
     @Override
     public boolean isAmbientOcclusion() {
-        return parent != null ? parent.isAmbientOcclusion() : true;
+        return parent.isAmbientOcclusion();
     }
 
     @Override
     public boolean isGui3d() {
-        return parent != null ? parent.isGui3d() : true;
+        return parent.isGui3d();
     }
 
     @Override
@@ -85,25 +87,26 @@ public class SimpleBakedModel implements IBakedModel {
 
     @Override
     public TextureAtlasSprite getParticleTexture() {
-        if (particle != null) {
-            return particle;
-        } else {
-            return parent != null ? parent.getParticleTexture() : null;
-        }
+        return parent.getParticleTexture();
     }
 
     @Override
     public ItemOverrideList getOverrides() {
-        return ItemOverrideList.NONE;
+        return parent.getOverrides();
+    }
+
+    @Override
+    public ItemCameraTransforms getItemCameraTransforms() {
+        return parent.getItemCameraTransforms();
     }
 
     @Override
     public Pair<? extends IBakedModel, Matrix4f> handlePerspective(ItemCameraTransforms.TransformType cameraTransformType) {
         Pair<? extends IBakedModel, Matrix4f> pair = parent.handlePerspective(cameraTransformType);
-        if (pair.getLeft() != parent) {
-            return pair;
+        if (pair.getLeft() == parent) {
+            return Pair.of(this, pair.getRight());
         } else {
-            return ImmutablePair.of(this, pair.getRight());
+            return pair;
         }
     }
 }

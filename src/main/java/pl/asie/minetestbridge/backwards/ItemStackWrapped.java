@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2015, 2016, 2017, 2018 Adrian Siekierka
+ *
+ * This file is part of MinetestBridge.
+ *
+ * MinetestBridge is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * MinetestBridge is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with MinetestBridge.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package pl.asie.minetestbridge.backwards;
 
 import net.minecraft.item.Item;
@@ -46,12 +65,48 @@ public class ItemStackWrapped extends LuaTable {
     }
 
     @LuaMethod
+    public LuaValue get_wear(LuaValue wrap) {
+        if (!stack.isItemStackDamageable()) {
+            return LuaValue.valueOf(0);
+        }
+
+        return LuaValue.valueOf(stack.getItemDamage() * 65535 / stack.getMaxDamage());
+    }
+
+    @LuaMethod
+    public LuaValue set_wear(LuaValue wrap, LuaValue amount) {
+        if (stack.isItemStackDamageable()) {
+            stack.setItemDamage(stack.getItemDamage() + (amount.optint(0) * stack.getMaxDamage() / 65535));
+        }
+
+        return LuaValue.valueOf(stack.getItemDamage() == 0);
+    }
+
+    @LuaMethod
+    public LuaValue add_wear(LuaValue wrap, LuaValue amount) {
+        if (stack.isItemStackDamageable()) {
+            stack.setItemDamage((amount.optint(0) * stack.getMaxDamage() / 65535));
+        }
+
+        return null;
+    }
+
+    @LuaMethod
+    public LuaValue is_known(LuaValue wrap) {
+        return LuaValue.valueOf(true);
+    }
+
+    @LuaMethod
     public LuaValue is_empty(LuaValue wrap) {
         return LuaValue.valueOf(stack.isEmpty());
     }
 
     @LuaMethod
     public LuaValue get_name(LuaValue wrap) {
+        if (stack.isEmpty()) {
+            return LuaValue.valueOf("ignore");
+        }
+
         return LuaValue.valueOf(MinetestBridge.asMtName(stack.getItem().getRegistryName()));
     }
 
