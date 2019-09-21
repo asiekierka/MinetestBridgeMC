@@ -2,14 +2,15 @@ buildscript {
     repositories {
         jcenter()
         maven { url = "http://files.minecraftforge.net/maven" }
+        maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath "gradle.plugin.net.minecrell:licenser:0.3"
     }
 }
 apply plugin: 'net.minecraftforge.gradle.forge'
-//Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
-
+apply plugin: 'net.minecrell.licenser'
 
 version = "0.1.0"
 group = "pl.asie.minetestbridge" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
@@ -36,6 +37,15 @@ repositories {
 		name 'asie dependency mirror'
 		artifactPattern "http://asie.pl/javadeps/[module]-[revision](-[classifier]).[ext]"
 	}
+}
+
+license {
+    sourceSets = [project.sourceSets.main]
+    header = project.file("docs/licenses/LICENSE")
+    ignoreFailures = true
+    exclude '**/*.lang'
+    exclude '**/*.info'
+    exclude '**/*.mcmeta'
 }
 
 dependencies {
